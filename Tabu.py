@@ -32,6 +32,17 @@ def total_tardiness(schedule, processing_times, due_dates):
         tardiness += max(0, completion_time - due_dates[job_num - 1])
     return tardiness
 
+
+def total_weighted_tardiness(schedule, processing_times, due_dates):
+    completion_time = 0
+    weighted_tardiness = 0
+    for job_num in schedule:
+        completion_time += processing_times[job_num - 1]
+        tardiness = max(0, completion_time - due_dates[job_num - 1])
+        weighted_tardiness += tardiness * (job_num + 1)  # Example weight: (job index + 1)
+    return weighted_tardiness
+
+
 # Generate neighbors by swapping adjacent jobs cyclically
 def generate_neighborhood(schedule):
     neighborhood = []
@@ -49,24 +60,26 @@ def find_swapped_jobs(schedule1, schedule2):
     return None, None
 
 # Main Tabu search function
-def tabu_search(x0, processing_times, due_dates, G, L=20, gamma=10, K=1000):
+def tabu_search(x0, processing_times, due_dates, G, cost_func, L=20, gamma=10, K=1000):
     tabu_list = []
     best_solution = x0[:]
-    best_tardiness = total_tardiness(x0, processing_times, due_dates)
+    best_tardiness = cost_func(x0, processing_times, due_dates)
     
     current_solution = x0[:]
     for k in range(K):
+        # Generate all possible neighbors
         neighborhood = generate_neighborhood(current_solution)
         
         best_move = None
         best_move_tardiness = float('inf')
         
         for neighbor in neighborhood:
+            # check for precedence constraints
             if is_feasible(neighbor, G):
                 i, j = find_swapped_jobs(current_solution, neighbor)
                 
-                if (i, j) not in tabu_list or total_tardiness(neighbor, processing_times, due_dates) < best_tardiness:
-                    tardiness = total_tardiness(neighbor, processing_times, due_dates)
+                if (i, j) not in tabu_list or cost_func(neighbor, processing_times, due_dates) < best_tardiness:
+                    tardiness = cost_func(neighbor, processing_times, due_dates)
                     
                     if tardiness < best_move_tardiness:
                         best_move = neighbor
@@ -90,15 +103,18 @@ def tabu_search(x0, processing_times, due_dates, G, L=20, gamma=10, K=1000):
 
 
 
+####################
+# CW Test
+####################
 
-# Initial solution x0
-x0 = [30,29,23,10,9,14,13,12,4,20,22,3,27,28,8,7,19,21,26,18,25,17,15,6,24,16,5,11,2,1,31]
-print(len(x0), len(processing_times),len(due_dates))
+# x0 = [30,29,23,10,9,14,13,12,4,20,22,3,27,28,8,7,19,21,26,18,25,17,15,6,24,16,5,11,2,1,31]
+# print(len(x0), len(processing_times),len(due_dates))
 
-# Run the tabu search with K=10, K=100, and K=1000 iterations and L=20
-print("Testing Tabu Search with different values of K:")
+# # Run the tabu search with K=10, K=100, and K=1000 iterations and L=20
+# print("Testing Tabu Search with different values of K:")
 
-for K in [10, 100, 1000]:
-    best_solution, best_tardiness = tabu_search(x0, processing_times, due_dates, G, L=20, gamma=10, K=K)
-    print(f"Best solution with K={K}: {best_solution}")
-    print(f"Total tardiness with K={K}: {best_tardiness}\n")
+# for K in [10, 100, 1000]:
+#     best_solution, best_tardiness = tabu_search(x0, processing_times, due_dates, G, total_tardiness, L=20, gamma=10, K=K)
+#     print(f"Best solution with K={K}: {best_solution}")
+#     print(f"Total tardiness with K={K}: {best_tardiness}\n")
+
