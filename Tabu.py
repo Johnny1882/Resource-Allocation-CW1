@@ -80,70 +80,70 @@ def find_swapped_jobs(schedule1, schedule2):
     return None, None
 
 # Main Tabu search function
-def tabu_search(x0, processing_times, due_dates, cost_func, L=2, gamma=100, K=3):
+def tabu_search(x0, processing_times, due_dates, G, cost_func, L=2, gamma=100, K=3):
     tabu_list = []
-    best_solution = x0[:]
-    best_tardiness = cost_func(x0, processing_times, due_dates)
-    current_solution = x0[:]
+    best_schedule = x0[:]
+    best_cost = cost_func(x0, processing_times, due_dates)
+    current_schedule = x0[:]
+    current_cost = best_cost
+    last_swap = 0
 
-    for k in range(1, K + 1):
-        # Generate all possible neighbors
-        neighborhood = generate_neighborhood(current_solution)
-        
-        best_move = None
-        best_move_tardiness = float('inf')
-        
-        for neighbor in neighborhood:
+    for k in range(1, K + 1):       
+        print(f"new try iteration {k}")
+        # iterate through swap paris until find one that satisfy the condition
+        for i in range(last_swap, last_swap + len(current_schedule) - 1):
+            i = i % (len(current_schedule) - 1)
+            print(f"switch {i} and {i+1}")
+            neighbor_schedule = current_schedule[:]
+            neighbor_schedule[i], neighbor_schedule[i + 1] = neighbor_schedule[i + 1], neighbor_schedule[i]
+
             # check for precedence
-            if not is_feasible(neighbor, G):
+            if not is_feasible(neighbor_schedule, G):
                 continue
+            
+            a, b = neighbor_schedule[i], neighbor_schedule[i+1]
+            a, b = min(a, b), max(a, b)
 
-            i, j = find_swapped_jobs(current_solution, neighbor)
-            i, j = min(i, j), max(i, j)
-            neighbor_cost = cost_func(neighbor, processing_times, due_dates)
-            current_cost = cost_func(current_solution, processing_times, due_dates)
+            neighbor_cost = cost_func(neighbor_schedule, processing_times, due_dates)
+            current_cost = cost_func(current_schedule, processing_times, due_dates)
             delta = current_cost - neighbor_cost
 
-            condition1 = ((i, j) not in tabu_list and delta < gamma)
-            condition2 = (cost_func(neighbor, processing_times, due_dates) < best_tardiness)
+            condition1 = ((a, b) not in tabu_list and delta < gamma)
+            condition2 = (cost_func(neighbor_schedule, processing_times, due_dates) < best_cost)
 
             if condition1 or condition2:
-                tardiness = cost_func(neighbor, processing_times, due_dates)
-                if tardiness < best_move_tardiness:
-                    best_move = neighbor
-                    best_move_tardiness = tardiness
 
-                    if tardiness < best_tardiness:
-                        best_solution = neighbor
-                        best_tardiness = tardiness
-                
+                tabu_list.append((a, b))
+                current_schedule = neighbor_schedule
+                current_cost = cost_func(neighbor_schedule, processing_times, due_dates)
+                last_swap = i+1
+                break
+
         # Update Tabu List
         if len(tabu_list) >= L:
             tabu_list.pop(0)
-        if best_move:
-            i, j = find_swapped_jobs(current_solution, best_move)
-            tabu_list.append((i, j))
-            current_solution = best_move
-        else:
-            break
+        if current_cost < best_cost:
+            best_cost = current_cost
+            best_schedule = current_schedule
+        
 
-    return best_solution, best_tardiness
+    return best_schedule, best_cost
 
 
 ####################
 # CW Test
 ####################
 
-# x0 = [30,29,23,10,9,14,13,12,4,20,22,3,27,28,8,7,19,21,26,18,25,17,15,6,24,16,5,11,2,1,31]
-# print(len(x0), len(processing_times),len(due_dates))
+x0 = [30,29,23,10,9,14,13,12,4,20,22,3,27,28,8,7,19,21,26,18,25,17,15,6,24,16,5,11,2,1,31]
+# x0 = [30, 29, 4, 3, 20, 10, 9, 8, 19, 14, 23, 7, 22, 21, 6, 18, 27, 13, 12, 28, 26, 17, 16, 25, 24, 5, 2, 15, 11, 1, 31]
 
-# # Run the tabu search with K=10, K=100, and K=1000 iterations and L=20
-# print("Testing Tabu Search with different values of K:")
+# Run the tabu search with K=10, K=100, and K=1000 iterations and L=20
+print("Testing Tabu Search with different values of K:")
 
-# for K in [10, 100, 1000]:
-#     best_solution, best_tardiness = tabu_search(x0, processing_times, due_dates, G, total_tardiness, L=20, gamma=10, K=K)
-#     print(f"Best solution with K={K}: {best_solution}")
-#     print(f"Total tardiness with K={K}: {best_tardiness}\n")
+for K in [10, 100, 1000, 10000]:
+    best_solution, best_tardiness = tabu_search(x0, processing_times, due_dates, G, total_tardiness, L=20, gamma=10, K=K)
+    print(f"Best solution with K={K}: {best_solution}")
+    print(f"Total tardiness with K={K}: {best_tardiness}\n")
 
 ####################
 # Other Tests   
@@ -156,6 +156,7 @@ def tabu_search(x0, processing_times, due_dates, cost_func, L=2, gamma=100, K=3)
 #             return False
 #     return True
 
-# initial_solution = generate_initial_solution(G)
+# # initial_solution = generate_initial_solution(G)
+# initial_solution = [30, 29, 4, 3, 20, 10, 9, 8, 19, 14, 23, 7, 22, 21, 6, 18, 27, 13, 12, 28, 26, 17, 16, 25, 24, 5, 2, 15, 11, 1, 31]
 # is_valid = is_valid_schedule(initial_solution, G)
 # print("Is the initial solution valid?", is_valid)
