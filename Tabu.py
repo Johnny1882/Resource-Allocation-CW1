@@ -88,8 +88,10 @@ def tabu_search(x0, processing_times, due_dates, G, cost_func, L=2, gamma=100, K
     current_cost = best_cost
     last_swap = 0
 
-    for k in range(1, K + 1):       
+    for k in range(1, K + 1):     
+        print("#########################")  
         print(f"new try iteration {k}")
+        print("#########################")  
         # iterate through swap paris until find one that satisfy the condition
         for i in range(last_swap, last_swap + len(current_schedule) - 1):
             i = i % (len(current_schedule) - 1)
@@ -108,12 +110,13 @@ def tabu_search(x0, processing_times, due_dates, G, cost_func, L=2, gamma=100, K
             current_cost = cost_func(current_schedule, processing_times, due_dates)
             delta = current_cost - neighbor_cost
 
-            condition1 = ((a, b) not in tabu_list and delta < gamma)
+            condition1 = ((a, b) not in tabu_list and delta > -gamma)
             condition2 = (cost_func(neighbor_schedule, processing_times, due_dates) < best_cost)
 
+            print(f"--- schedule: {neighbor_schedule}, cost: {neighbor_cost}, {condition1} {condition2}")
             if condition1 or condition2:
-
-                tabu_list.append((a, b))
+                if (a, b) not in tabu_list:
+                    tabu_list.append((a, b))
                 current_schedule = neighbor_schedule
                 current_cost = cost_func(neighbor_schedule, processing_times, due_dates)
                 last_swap = i+1
@@ -125,7 +128,8 @@ def tabu_search(x0, processing_times, due_dates, G, cost_func, L=2, gamma=100, K
         if current_cost < best_cost:
             best_cost = current_cost
             best_schedule = current_schedule
-        
+        print(f"current schedule: {current_schedule}")
+        print(f"current cost: {current_cost}")
 
     return best_schedule, best_cost
 
@@ -137,10 +141,9 @@ def tabu_search(x0, processing_times, due_dates, G, cost_func, L=2, gamma=100, K
 x0 = [30,29,23,10,9,14,13,12,4,20,22,3,27,28,8,7,19,21,26,18,25,17,15,6,24,16,5,11,2,1,31]
 # x0 = [30, 29, 4, 3, 20, 10, 9, 8, 19, 14, 23, 7, 22, 21, 6, 18, 27, 13, 12, 28, 26, 17, 16, 25, 24, 5, 2, 15, 11, 1, 31]
 
-# Run the tabu search with K=10, K=100, and K=1000 iterations and L=20
 print("Testing Tabu Search with different values of K:")
 
-for K in [10, 100, 1000, 10000]:
+for K in [10, 100, 1000]:
     best_solution, best_tardiness = tabu_search(x0, processing_times, due_dates, G, total_tardiness, L=20, gamma=10, K=K)
     print(f"Best solution with K={K}: {best_solution}")
     print(f"Total tardiness with K={K}: {best_tardiness}\n")

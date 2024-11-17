@@ -1,10 +1,5 @@
 import numpy as np
 
-weights = [3,4,5,7]
-processing_times = [16,11,4,8]
-due_dates = [1, 2, 7, 9]
-x0 = [4, 2, 1, 3]  # Initial schedule
-
 
 # Define the weighted tardiness function
 def total_weighted_tardiness(schedule, processing_times, due_dates):
@@ -32,73 +27,77 @@ def find_swapped_jobs(schedule1, schedule2):
             return schedule1[i], schedule2[i]
     return None, None
 
+def is_feasible(schedule, g):
+    return True
 
 
 # Modified Tabu search to display iterations
-def tabu_search(x0, processing_times, due_dates, cost_func, L=2, gamma=100, K=3):
+def tabu_search(x0, processing_times, due_dates, G, cost_func, L=2, gamma=100, K=3):
     tabu_list = []
-    best_solution = x0[:]
-    best_tardiness = cost_func(x0, processing_times, due_dates)
-    current_solution = x0[:]
+    best_schedule = x0[:]
+    best_cost = cost_func(x0, processing_times, due_dates)
+    current_schedule = x0[:]
+    current_cost = best_cost
+    last_swap = 0
 
-    print(f"Initial solution: {best_solution}, Tardiness: {best_tardiness}")
-    
-    for k in range(1, K + 1):
-        # Generate all possible neighbors
-        print("#################################")
-        print(f"Iteration Number {k}")
-        print("#################################")
-        neighborhood = generate_neighborhood(current_solution)
-        
-        best_move = None
-        best_move_tardiness = float('inf')
-        
-        for neighbor in neighborhood:
-            i, j = find_swapped_jobs(current_solution, neighbor)
-            i, j = min(i, j), max(i, j)
-            neighbor_cost = cost_func(neighbor, processing_times, due_dates)
-            current_cost = cost_func(current_solution, processing_times, due_dates)
+    for k in range(1, K + 1):     
+        print("#########################")  
+        print(f"new try iteration {k}")
+        print("#########################")  
+        # iterate through swap paris until find one that satisfy the condition
+        for i in range(last_swap, last_swap + len(current_schedule) - 1):
+            i = i % (len(current_schedule) - 1)
+            print(f"switch {i} and {i+1}")
+            neighbor_schedule = current_schedule[:]
+            neighbor_schedule[i], neighbor_schedule[i + 1] = neighbor_schedule[i + 1], neighbor_schedule[i]
+
+            # check for precedence
+            if not is_feasible(neighbor_schedule, G):
+                continue
+            
+            a, b = neighbor_schedule[i], neighbor_schedule[i+1]
+            a, b = min(a, b), max(a, b)
+
+            neighbor_cost = cost_func(neighbor_schedule, processing_times, due_dates)
+            current_cost = cost_func(current_schedule, processing_times, due_dates)
             delta = current_cost - neighbor_cost
 
-            condition1 = ((i, j) not in tabu_list and delta < gamma)
-            condition2 = (cost_func(neighbor, processing_times, due_dates) < best_tardiness)
+            condition1 = ((a, b) not in tabu_list and delta > -gamma)
+            condition2 = (cost_func(neighbor_schedule, processing_times, due_dates) < best_cost)
 
+            print(f"--- schedule: {neighbor_schedule}, cost: {neighbor_cost}, {condition1} {condition2}")
             if condition1 or condition2:
-                # stop when the first feasible neighbor is found
-                # best_move = neighbor
-                # best_move_tardiness = cost_func(neighbor, processing_times, due_dates)
-                # break
-                tardiness = cost_func(neighbor, processing_times, due_dates)
-                print(f"try schedule: {neighbor}, cost: {tardiness}")
-                if tardiness < best_move_tardiness:
-                    best_move = neighbor
-                    best_move_tardiness = tardiness
+                if (a, b) not in tabu_list:
+                    tabu_list.append((a, b))
+                current_schedule = neighbor_schedule
+                current_cost = cost_func(neighbor_schedule, processing_times, due_dates)
+                last_swap = i+1
+                break
 
-                    if tardiness < best_tardiness:
-                        best_solution = neighbor
-                        best_tardiness = tardiness
-                
-        
         # Update Tabu List
         if len(tabu_list) >= L:
             tabu_list.pop(0)
-        if best_move:
-            i, j = find_swapped_jobs(current_solution, best_move)
-            tabu_list.append((i, j))
-            current_solution = best_move
-        else:
-            break
-        print(f"Tabu List,{tabu_list}")
-        print(f"Iteration {k}: Current solution: {current_solution}, Tardiness: {best_move_tardiness}")
-    
-    return best_solution, best_tardiness
+        if current_cost < best_cost:
+            best_cost = current_cost
+            best_schedule = current_schedule
+        print(f"current schedule: {current_schedule}")
+        print(f"current cost: {current_cost}")
 
+    return best_schedule, best_cost
 
+##################################
+# Tutorial 3.8
+##################################
 
+weights = [3,4,5,7]
+processing_times = [16,11,4,8]
+due_dates = [1, 2, 7, 9]
+x0 = [4, 2, 1, 3]  # Initial schedule
 best_solution, best_tardiness = tabu_search(
     x0, 
     processing_times, 
     due_dates, 
+    0, # dummy
     total_weighted_tardiness, 
     L=2, 
     gamma=20, 
@@ -106,3 +105,27 @@ best_solution, best_tardiness = tabu_search(
 )
 
 print(f"Final solution: {best_solution}, Total Weighted Tardiness: {best_tardiness}")
+
+
+
+##################################
+# Tutorial 3.7
+##################################
+
+# weights = [14,12,1,12]
+# processing_times = [10, 10, 13, 4]
+# due_dates = [4, 2, 1, 12]
+# x0 = [2, 1, 4, 3]  # Initial schedule
+
+# best_solution, best_tardiness = tabu_search(
+#     x0, 
+#     processing_times, 
+#     due_dates, 
+#     0, # dummy
+#     total_weighted_tardiness, 
+#     L=2, 
+#     gamma=100, 
+#     K=3
+# )
+
+# print(f"Final solution: {best_solution}, Total Weighted Tardiness: {best_tardiness}")
