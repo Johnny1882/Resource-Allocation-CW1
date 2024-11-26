@@ -1,0 +1,14 @@
+Iteration 1: Partial Schedule = [30]
+Iteration 2: Partial Schedule = [0, 30]
+Iteration 6: Partial Schedule = [4, 1, 14, 10, 0, 30]
+Iteration 11: Partial Schedule = [25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Iteration 16: Partial Schedule = [15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Iteration 21: Partial Schedule = [8, 7, 6, 5, 16, 15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Iteration 26: Partial Schedule = [20, 19, 18, 17, 9, 8, 7, 6, 5, 16, 15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+Iteration 31: Partial Schedule = [29, 3, 2, 22, 21, 20, 19, 18, 17, 9, 8, 7, 6, 5, 16, 15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30]
+####### Final Results: ######## 
+Final Schedule: [29, 3, 2, 22, 21, 20, 19, 18, 17, 9, 8, 7, 6, 5, 16, 15, 13, 28, 27, 26, 25, 24, 23, 12, 11, 4, 1, 14, 10, 0, 30] 
+Completion Times: [160 147   6   4 137  68  66  52  47  41 157 132 130  83 152  80  74  36
+  30  28  25  23  20 127 122 104  94  92  89   2 170]
+Maximum Tardiness: 65
+Total Tardiness: 165
