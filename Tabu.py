@@ -138,12 +138,12 @@ processing_times = [3,10,2,2,5,2,14,5,6,5,5,2,3,3,5,6,6,6,2,3,2,3,14,5,18,10,2,3
 due_dates = [172,82,18,61,93,71,217,295,290,287,253,307,279,73,355,34,233,77,88,122,71,181,340,141,209,217,256,144,307,329,269]
 x0 = [30,29,23,10,9,14,13,12,4,20,22,3,27,28,8,7,19,21,26,18,25,17,15,6,24,16,5,11,2,1,31]
 
-print("Testing Tabu Search with different values of K:")
+print("Testing Tabu Search with different values of K = 10, 100, 1000:")
 
-for K in [100]:
-    best_solution, best_tardiness = tabu_search(x0, processing_times, due_dates, total_tardiness, L=20, gamma=10, K=K)
-    print(f"Best solution with K={K}: {best_solution}")
-    print(f"Total tardiness with K={K}: {best_tardiness}\n")
+best_solution, best_tardiness = tabu_search(x0, processing_times, due_dates, total_tardiness, L=20, gamma=10, K=1000)
+# print(f"Best solution with K={K}: {best_solution}")
+# print(f"Total tardiness with K={K}: {best_tardiness}\n")
+
 
 ####################
 # Other Tests   
@@ -167,8 +167,8 @@ for K in [100]:
 ##################################################################################################
 
 # Define the range of gamma and L values to test
-gamma_values = range(1, 21)  # Gamma values from 1 to 20
-L_values = range(1, 21)      # L values from 1 to 20
+gamma_values = range(1, 101, 5)  # Gamma values from 1 to 20
+L_values = range(1, 101, 5)      # L values from 1 to 20
 
 # Storage for results
 results = []
@@ -180,15 +180,16 @@ for gamma in gamma_values:
         results.append((L, gamma, best_tardiness))
 
 # Convert results to a 2D array for plotting
-L_gamma_tardiness = np.array(results)
+L_gamma_tardiness = np.array(results, dtype=int)
+# Find the best combination and remove from all results
+opt_index = np.argmin(L_gamma_tardiness[:, 2])
+best_L, best_gamma, best_tardiness = results.pop(opt_index)
+L_gamma_tardiness = np.array(results, dtype=int)
 
-# Find the best combination
-best_combination = L_gamma_tardiness[np.argmin(L_gamma_tardiness[:, 2])]
-# Extract L, gamma, and best_tardiness values
+# Extract L, gamma, and tardiness values except for the best
 L_values = L_gamma_tardiness[:, 0]
 gamma_values = L_gamma_tardiness[:, 1]
 tardiness_values = L_gamma_tardiness[:, 2]
-best_L, best_gamma, best_tardiness = best_combination
 
 # Plot the results in 3D
 fig = plt.figure(figsize=(12, 8))
@@ -198,7 +199,7 @@ ax = fig.add_subplot(111, projection='3d')
 scatter = ax.scatter(L_values, gamma_values, tardiness_values, c=tardiness_values, cmap='viridis', s=50)
 
 # Highlight the best combination in red
-ax.scatter([best_L], [best_gamma], [best_tardiness], color='red', label=f'Best Combination total tardiness {int(best_tardiness)}', s=100, edgecolors='black')
+ax.scatter([best_L], [best_gamma], [best_tardiness], color='red', label=f'Best Combination: L={best_L}, gamma={best_gamma}, tardiness={best_tardiness}', s=100, edgecolors='black')
 
 # Add color bar and labels
 fig.colorbar(scatter, ax=ax, label='Best Tardiness')
