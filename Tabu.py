@@ -1,15 +1,11 @@
 import numpy as np
 from collections import deque
-import numpy as np
 import matplotlib.pyplot as plt
 
 # Generate an feasible initial solution using topological sorting
 def generate_initial_solution(G):
     in_degree = np.sum(G, axis=0)  # Calculate in-degree of each node
-    queue = deque()  # Queue to store nodes with in-degree 0
-    for i in range(len(G)):
-        if in_degree[i] == 0:
-            queue.append(i)
+    queue = deque(i for i in range(in_degree.shape[1]) if in_degree[i]==0)    # Queue to store nodes with in-degree 0
 
     schedule = []
     while queue:
@@ -18,7 +14,7 @@ def generate_initial_solution(G):
 
         # Decrease the in-degree of its neighbors
         for neighbor in range(len(G)):
-            if G[node, neighbor] == 1:
+            if G[node, neighbor]:
                 in_degree[neighbor] -= 1
                 if in_degree[neighbor] == 0:
                     queue.append(neighbor)
@@ -26,9 +22,10 @@ def generate_initial_solution(G):
     return schedule
 
 # Check if a schedule is feasible given precedence constraints
-def is_feasible(schedule, G):
+def is_feasible(schedule):
+    schedule_index = {schedule[s]-1: s for s in range(len(schedule))}
     for i, j in edges:
-        if schedule.index(i+1) > schedule.index(j+1):
+        if schedule_index[i] > schedule_index[j]:
             return False
     return True
 
@@ -77,14 +74,14 @@ def tabu_search(x0, processing_times, due_dates, G, cost_func, L=2, gamma=100, K
 
             # two conditions to accept the new schedule
             condition1 = ((a, b) not in tabu_list and delta > -gamma)
-            condition2 = (cost_func(neighbor_schedule, processing_times, due_dates) < best_cost)
+            condition2 = (neighbor_cost < best_cost)
 
             # if either condition is satisfied, update record and go to next iteration
             if condition1 or condition2:
                 if (a, b) not in tabu_list:
                     tabu_list.append((a, b))
                 current_schedule = neighbor_schedule
-                current_cost = cost_func(neighbor_schedule, processing_times, due_dates)
+                current_cost = neighbor_cost
                 last_swap = i+1
                 break
 
@@ -134,9 +131,6 @@ if __name__ == "__main__":
         logger.write("############## Final Results ################# \n")
         logger.write(f"Best solution with K={K}: {best_solution} \n")
         logger.write(f"Total tardiness with K={K}: {best_tardiness}\n")
-
-
-
 
 
 ####################
