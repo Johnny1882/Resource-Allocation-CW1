@@ -124,9 +124,9 @@ if __name__ == "__main__":
     x0 = [30,29,23,10,9,14,13,12,4,20,22,3,27,28,8,7,19,21,26,18,25,17,15,6,24,16,5,11,2,1,31]
 
     for K in [10, 100, 1000]:
-        logger = open(f"tabu_k={K}.txt", 'w')
+        logger = open(f"printout/tabu_k={K}.txt", 'w')
         logger.write(f"############## Running Tabu List with K = {K} ################# \n")
-        best_solution, best_tardiness = tabu_search(x0, processing_times, due_dates, G, total_tardiness, L=20, gamma=10, K=K)
+        best_solution, best_tardiness = tabu_search(x0, processing_times, due_dates, total_tardiness, L=20, gamma=10, K=K)
 
         logger.write("############## Final Results ################# \n")
         logger.write(f"Best solution with K={K}: {best_solution} \n")
